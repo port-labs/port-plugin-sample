@@ -17,5 +17,6 @@ export function useBlueprints(token: string | null) {
         queryKey: ['blueprints', token],
         queryFn: () => fetchBlueprints(token!),
         enabled: !!token,
+        refetchInterval: 1000 * 60 * 5,
     });
 }
