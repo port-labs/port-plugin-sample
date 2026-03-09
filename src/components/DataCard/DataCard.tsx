@@ -1,4 +1,3 @@
-
 export const DataCard = ({ title, icon, children }: { title: string; icon?: string, children: React.ReactNode }) => {
     return (
         <section className="data-card">
