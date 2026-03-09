@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
-const BLUEPRINTS_URL = 'http://api.localhost:9080/v1/blueprints' //'https://api.stg-01.port.io/v1/blueprints';
+const BLUEPRINTS_URL = `${process.env.BASE_URL}/v1/blueprints`;
 
 async function fetchBlueprints(token: string) {
     const res = await fetch(BLUEPRINTS_URL, {
