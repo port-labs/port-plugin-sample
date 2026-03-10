@@ -1,4 +1,6 @@
-export const ErrorSection = ({ title, icon, errorMessage }: { title: string; icon?: string, errorMessage?: string }) => {
+import { ErrorSectionProps } from "../../types";
+
+export const ErrorSection = ({ title, icon, errorMessage }: ErrorSectionProps) => {
     const message = errorMessage || 'An error occurred';
 
     return (

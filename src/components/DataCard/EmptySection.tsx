@@ -1,4 +1,6 @@
-export const EmptySection = ({ title, icon, emptyMessage }: { title: string; icon?: string, emptyMessage?: string }) => {
+import { EmptySectionProps } from "../../types";
+
+export const EmptySection = ({ title, icon, emptyMessage }: EmptySectionProps) => {
     const message = emptyMessage || 'No data received yet';
     return (
         <section className="data-card">

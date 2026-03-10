@@ -1,3 +1,4 @@
+import { PluginDataCardProps } from "../types";
 import { EmptySection } from "./DataCard";
 import { DataCard } from "./DataCard/DataCard";
 
@@ -12,7 +13,7 @@ const formatValue = (value: unknown): React.ReactNode => {
     return String(value);
 };
 
-export const PluginDataCard = ({ title, data, icon }: { title: string; data: Record<string, unknown>; icon?: string }) => {
+export const PluginDataCard = ({ title, data, icon }: PluginDataCardProps) => {
     const entries = Object.entries(data);
 
     if (entries.length === 0) {
