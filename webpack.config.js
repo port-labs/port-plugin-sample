@@ -1,7 +1,10 @@
+require("dotenv").config();
+
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const InlineChunkHtmlPlugin = require("react-dev-utils/InlineChunkHtmlPlugin");
 const TerserPlugin = require("terser-webpack-plugin");
 const path = require("path");
+const webpack = require("webpack");
 
 module.exports = (env, argv) => ({
 	mode: argv.mode === "production" ? "production" : "development",
@@ -71,6 +74,9 @@ module.exports = (env, argv) => ({
 	},
 
 	plugins: [
+		new webpack.DefinePlugin({
+			"process.env.BASE_URL": JSON.stringify(process.env.BASE_URL ?? ""),
+		}),
 		new HtmlWebpackPlugin({
 			template: "./src/index.html",
 			filename: "ui.html",
