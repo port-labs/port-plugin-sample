@@ -6,7 +6,7 @@ import { ErrorSection } from "./DataCard/ErrorSection";
 
 export const BlueprintDataCard = () => {
     const { portToken } = usePostMessageData();
-    const blueprints = useBlueprints(portToken)
+    const blueprints = useBlueprints()
 
     if (!portToken) {
         return <EmptySection title="Blueprints" icon="📋" emptyMessage="Waiting for token…" />

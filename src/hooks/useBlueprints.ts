@@ -1,8 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
+import { usePostMessageData } from "./usePostMessageData";
 
-const BLUEPRINTS_URL = `${process.env.BASE_URL}/v1/blueprints`;
 
-async function fetchBlueprints(token: string) {
+async function fetchBlueprints(token: string, portApiBaseUrl: string | null) {
+    const BLUEPRINTS_URL = `${portApiBaseUrl}/v1/blueprints`;
+
     const res = await fetch(BLUEPRINTS_URL, {
         headers: {
             Authorization: `Bearer ${token}`,
@@ -12,11 +14,12 @@ async function fetchBlueprints(token: string) {
     return res.json();
 }
 
-export function useBlueprints(token: string | null) {
+export function useBlueprints() {
+    const { portApiBaseUrl, portToken } = usePostMessageData();
     return useQuery({
-        queryKey: ['blueprints', token],
-        queryFn: () => fetchBlueprints(token!),
-        enabled: !!token,
+        queryKey: ['blueprints', portToken],
+        queryFn: () => fetchBlueprints(portToken!, portApiBaseUrl),
+        enabled: !!portToken,
         refetchInterval: 1000 * 60 * 5,
     });
 }
