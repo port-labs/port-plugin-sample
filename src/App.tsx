@@ -1,5 +1,5 @@
 import './App.css';
-import { BlueprintDataCard, PluginDataCard } from './components';
+import { BlueprintDataCard, DualBlueprintEntitiesTable, PluginDataCard } from './components';
 import { usePostMessageData } from './hooks/usePostMessageData';
 
 export default function App() {
@@ -10,6 +10,9 @@ export default function App() {
 			<h1>Hello {user.firstName as string} {user.lastName as string}</h1>
 			<p>This is a sample plugin bundled with InlineChunkHtmlPlugin.</p>
 			<p>All JS and CSS are inlined into a single HTML file.</p>
+
+			<DualBlueprintEntitiesTable />
+
 			<PluginDataCard title="Page data" data={page} icon="📄" />
 			<PluginDataCard title="Params" data={params} icon="⚙️" />
 			{entity && (

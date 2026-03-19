@@ -146,3 +146,69 @@ body {
 	white-space: pre-wrap;
 	word-break: break-word;
 }
+
+/* Entities table */
+.entities-table-section {
+	text-align: left;
+}
+
+.entities-table__subtitle {
+	margin-left: 8px;
+	font-size: 0.85rem;
+	font-weight: 500;
+	color: #64748b;
+}
+
+.entities-table-wrap {
+	overflow-x: auto;
+	border-radius: 8px;
+	border: 1px solid #e2e8f0;
+	background: #fff;
+}
+
+.entities-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.875rem;
+}
+
+.entities-table th,
+.entities-table td {
+	padding: 10px 12px;
+	text-align: left;
+	border-bottom: 1px solid #e2e8f0;
+	vertical-align: top;
+}
+
+.entities-table th {
+	font-weight: 600;
+	color: #475569;
+	background: #f8fafc;
+	font-size: 0.8rem;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+}
+
+.entities-table tbody tr:last-child td {
+	border-bottom: none;
+}
+
+.entities-table tbody tr:hover td {
+	background: #f8fafc;
+}
+
+.entities-table__title-cell {
+	font-weight: 500;
+	color: #1e293b;
+}
+
+.entities-table__icon {
+	margin-right: 6px;
+}
+
+.entities-table__id-cell {
+	font-size: 0.75rem;
+	color: #64748b;
+	word-break: break-all;
+	max-width: 12rem;
+}
