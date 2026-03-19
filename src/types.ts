@@ -1,3 +1,9 @@
+/** Single plugin param from the host (`PLUGIN_DATA.params`). */
+export interface PluginParam {
+	value: unknown;
+	type: string;
+}
+
 export interface DataCardProps {
     title: string;
     icon?: string;

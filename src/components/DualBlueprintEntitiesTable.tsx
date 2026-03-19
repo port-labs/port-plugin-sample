@@ -1,15 +1,76 @@
 import { useMemo } from 'react';
 import { useEntities, type EntitySearchBody, type EntitySearchRule } from '../hooks/useEntities';
 import { usePostMessageData } from '../hooks/usePostMessageData';
+import type { PluginParam } from '../types';
+
+function pluginParamValue(record: Record<string, unknown>, key: string): unknown {
+	const entry = record[key];
+	if (entry && typeof entry === 'object' && 'value' in entry) {
+		return (entry as PluginParam).value;
+	}
+	return undefined;
+}
 
 type PortEntity = {
 	identifier: string;
 	title: string;
 	icon?: string;
 	team?: string;
+	/** Present on many Port API entity payloads (not under `properties`). */
+	blueprint?: unknown;
 	properties?: Record<string, unknown>;
 	relations?: Record<string, unknown>;
 };
+
+function coerceBlueprintLabel(raw: unknown): string {
+	if (raw == null) return '';
+	if (typeof raw === 'string') return raw.trim();
+	if (typeof raw === 'object') {
+		const o = raw as { identifier?: unknown; title?: unknown };
+		const id = typeof o.identifier === 'string' ? o.identifier.trim() : '';
+		const title = typeof o.title === 'string' ? o.title.trim() : '';
+		if (title && id) return `${title} (${id})`;
+		if (id) return id;
+		if (title) return title;
+	}
+	return '';
+}
+
+/** Port may expose blueprint on the entity root, in properties, or omit it (use fallback when only one blueprint is queried). */
+function blueprintFromEntity(
+	row: PortEntity,
+	fallbackWhenSingleBlueprint: string
+): string {
+	for (const raw of [row.blueprint, row.properties?.$blueprint, row.properties?.blueprint]) {
+		const label = coerceBlueprintLabel(raw);
+		if (label) return label;
+	}
+	if (fallbackWhenSingleBlueprint) return fallbackWhenSingleBlueprint;
+	return '—';
+}
+
+/** Params may pass a blueprint id string or a Port blueprint object (uses `identifier` for search). */
+function blueprintParamToIdentifier(value: unknown): string {
+	if (typeof value === 'string') return value.trim();
+	if (value && typeof value === 'object') {
+		const id = (value as { identifier?: unknown }).identifier;
+		if (typeof id === 'string') return id.trim();
+	}
+	return '';
+}
+
+function blueprintParamToLabel(value: unknown): string {
+	if (typeof value === 'string') return value.trim();
+	if (value && typeof value === 'object') {
+		const o = value as { identifier?: unknown; title?: unknown };
+		const id = typeof o.identifier === 'string' ? o.identifier.trim() : '';
+		const title = typeof o.title === 'string' ? o.title.trim() : '';
+		if (title && id) return `${title} (${id})`;
+		if (title) return title;
+		if (id) return id;
+	}
+	return '';
+}
 
 function buildDualBlueprintSearchBody(blueprint1: string, blueprint2: string): EntitySearchBody | null {
 	const rules: EntitySearchRule[] = [];
@@ -23,18 +84,24 @@ function buildDualBlueprintSearchBody(blueprint1: string, blueprint2: string): E
 export function DualBlueprintEntitiesTable() {
 	const { params, portToken } = usePostMessageData();
 
-	const blueprint1 = typeof params.blueprint1 === 'string' ? params.blueprint1.trim() : '';
-	const blueprint2 = typeof params.blueprint2 === 'string' ? params.blueprint2.trim() : '';
+	const blueprint1Raw = pluginParamValue(params, 'blueprint1');
+	const blueprint2Raw = pluginParamValue(params, 'blueprint2');
+	const blueprint1Id = blueprintParamToIdentifier(blueprint1Raw);
+	const blueprint2Id = blueprintParamToIdentifier(blueprint2Raw);
+	const blueprintLabels = [blueprintParamToLabel(blueprint1Raw), blueprintParamToLabel(blueprint2Raw)].filter(Boolean);
 
 	const entitiesSearchBody = useMemo(
-		() => buildDualBlueprintSearchBody(blueprint1, blueprint2),
-		[blueprint1, blueprint2]
+		() => buildDualBlueprintSearchBody(blueprint1Id, blueprint2Id),
+		[blueprint1Id, blueprint2Id]
 	);
 
 	const entitiesQuery = useEntities(entitiesSearchBody);
 	const entities: PortEntity[] = Array.isArray(entitiesQuery.data?.entities)
 		? entitiesQuery.data.entities
 		: [];
+
+	const fallbackBlueprintCell =
+		blueprint1Id && blueprint2Id ? '' : blueprint1Id || blueprint2Id;
 
 	return (
 		<section className="entities-table-section data-card" aria-labelledby="entities-table-heading">
@@ -43,13 +110,11 @@ export function DualBlueprintEntitiesTable() {
 					📊
 				</span>
 				Entities
-				{(blueprint1 || blueprint2) && (
-					<span className="entities-table__subtitle">
-						({[blueprint1, blueprint2].filter(Boolean).join(' · ')})
-					</span>
+				{blueprintLabels.length > 0 && (
+					<span className="entities-table__subtitle">({blueprintLabels.join(' · ')})</span>
 				)}
 			</h2>
-			{!blueprint1 && !blueprint2 ? (
+			{!blueprint1Id && !blueprint2Id ? (
 				<p className="data-card__empty">
 					Set params <code>blueprint1</code> and/or <code>blueprint2</code> to load entities.
 				</p>
@@ -76,15 +141,18 @@ export function DualBlueprintEntitiesTable() {
 						</thead>
 						<tbody>
 							{entities.map((row) => {
-								const bp =
-									typeof row.properties?.$blueprint === 'string'
-										? row.properties.$blueprint
-										: '—';
+								const bp = blueprintFromEntity(row, fallbackBlueprintCell);
 								return (
 									<tr key={row.identifier}>
 										<td className="entities-table__title-cell">
 											{row.icon ? <span className="entities-table__icon">{row.icon}</span> : null}
-											{row.title ?? '—'}
+											{row.title ? (
+												<a className="entities-table__title-link" href="#">
+													{row.title}
+												</a>
+											) : (
+												'—'
+											)}
 										</td>
 										<td>{bp}</td>
 										<td>{row.team ?? '—'}</td>
