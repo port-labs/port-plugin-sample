@@ -111,7 +111,7 @@ export function DualBlueprintEntitiesTable() {
 				</span>
 				Entities
 				{blueprintLabels.length > 0 && (
-					<span className="entities-table__subtitle">({blueprintLabels.join(' · ')})</span>
+					<span className="entities-table__subtitle">{blueprintLabels.join(' · ')}</span>
 				)}
 			</h2>
 			{!blueprint1Id && !blueprint2Id ? (

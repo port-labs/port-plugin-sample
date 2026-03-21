@@ -6,17 +6,17 @@
 
 body {
 	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-	background: #f5f7fa;
+	/* background: #f5f7fa; */
 	color: #1a1a2e;
 }
 
 .plugin-container {
 	max-width: 80%;
-	margin: 40px auto;
+	margin: 0px auto;
 	padding: 32px;
 	background: #fff;
 	border-radius: 12px;
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+	/* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); */
 	text-align: center;
 }
 
