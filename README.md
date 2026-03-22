@@ -4,7 +4,7 @@ A sample plugin built with React and TypeScript. The plugin receives context fro
 
 ## Tech stack
 
-- **React 18** + **TypeScript**
+- **React 19** + **TypeScript** 5.9
 - **TanStack React Query** for API data (blueprints; entity search hook is included but not used in the main UI)
 - **Webpack 5** with `InlineChunkHtmlPlugin` (from `react-dev-utils`) to inline JS and CSS into the HTML output
 - **PostCSS** (with `postcss-preset-env`) for CSS
@@ -13,7 +13,7 @@ A sample plugin built with React and TypeScript. The plugin receives context fro
 
 ### Prerequisites
 
-- Node.js (v18+ recommended)
+- Node.js **22+** (this repo targets the Node 22 LTS line; use an [LTS](https://nodejs.org/en/about/previous-releases) release in production)
 - Yarn or npm
 
 ### API base URL
