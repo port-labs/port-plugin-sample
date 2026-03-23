@@ -101,7 +101,3 @@ The plugin runs inside an iframe. It talks to the Port host via `window.postMess
 ```
 
 The app mounts into `<div id="plugin-root">` in the template. The production build inlines the compiled bundle into `ui.html`.
-
-## License
-
-Private / unlicensed — adjust as needed for your use.
