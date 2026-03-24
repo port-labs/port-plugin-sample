@@ -7,15 +7,15 @@ export default function App() {
 
 	return (
 		<div className="plugin-container">
-			<h1>Hello {user.firstName as string} {user.lastName as string}</h1>
+			<h1>Hello {user?.firstName as string} {user?.lastName as string}</h1>
 			<p>This is a sample plugin bundled with InlineChunkHtmlPlugin.</p>
 			<p>All JS and CSS are inlined into a single HTML file.</p>
-			<PluginDataCard title="Page data" data={page} icon="📄" />
+			<PluginDataCard title="Page data" data={page ?? {}} icon="📄" />
 			<PluginDataCard title="Params" data={params} icon="⚙️" />
 			{entity && (
 				<PluginDataCard title="Entity" data={entity} icon="📦" />
 			)}
-			<PluginDataCard title="User" data={user} icon="👤" />
+			<PluginDataCard title="User" data={user ?? {}} icon="👤" />
 			<BlueprintDataCard />
 		</div>
 	);
