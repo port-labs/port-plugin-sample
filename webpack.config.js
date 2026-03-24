@@ -79,7 +79,7 @@ module.exports = (env, argv) => ({
 		}),
 		new HtmlWebpackPlugin({
 			template: "./src/index.html",
-			filename: "ui.html",
+			filename: "index.html",
 			chunks: ["ui"],
 			cache: false,
 		}),

@@ -1,6 +1,6 @@
 # Port Plugin Sample
 
-A sample plugin built with React and TypeScript. The plugin receives context from the Port host via `postMessage` (user, page, params, entity, API base URL), requests a JWT for API calls, and fetches blueprints from the Port API. The build produces a single **self-contained HTML file** (`ui.html`) with all JavaScript and CSS inlined, suitable for embedding in Port or similar plugin hosts.
+A sample plugin built with React and TypeScript. The plugin receives context from the Port host via `postMessage` (user, page, params, entity, API base URL), requests a JWT for API calls, and fetches blueprints from the Port API. The build produces a single **self-contained HTML file** (`dist/index.html`) with all JavaScript and CSS inlined, suitable for embedding in Port or similar plugin hosts.
 
 ## Tech stack
 
@@ -44,7 +44,7 @@ yarn build
 
 Output is written to `dist/`:
 
-- **`dist/ui.html`** — single HTML file with inlined JS and CSS, ready to host or embed in Port.
+- **`dist/index.html`** — single HTML file with inlined JS and CSS, ready to host or embed in Port.
 
 ## How it works
 
@@ -100,4 +100,4 @@ The plugin runs inside an iframe. It talks to the Port host via `window.postMess
 └── package.json
 ```
 
-The app mounts into `<div id="plugin-root">` in the template. The production build inlines the compiled bundle into `ui.html`.
+The app mounts into `<div id="plugin-root">` in the template. The production build inlines the compiled bundle into `dist/index.html`.
