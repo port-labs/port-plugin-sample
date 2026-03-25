@@ -55,6 +55,10 @@ Output is written to `dist/`:
 3. **Blueprints** — `BlueprintDataCard` uses `useBlueprints`: once a token exists, it calls `{baseUrl}/v1/blueprints` with `Authorization: Bearer <token>`. It shows waiting, loading, error, or empty states as appropriate. The query refetches every **5 minutes**.
 4. **Entity search (example)** — `EntitiesSearchExample` waits for a token, loads blueprints, takes the **first** blueprint as a sample context, then calls `entitiesSearch` with a minimal body (filter by that blueprint’s identifier). The hook merges the widget query with page filters via `mergeWidgetQueryWithPageQuery` before posting to `/v1/entities/search`. The raw JSON response is shown in a card. The **`entitiesSearch`** hook is documented in code as an example to copy or adapt for your own widgets.
 
+### `mergeWidgetQueryWithPageQuery`
+
+The helper in `src/utils/mergeWidgetQueryWithPageQuery.ts` combines a **widget query** (your widget’s entity search body—the same shape you would send to `POST /v1/entities/search`) with the **page filters** applied on the Port page that hosts the plugin. Those filters arrive from the host on `PLUGIN_DATA.page` (for example `pageFilters`). The function returns a single search body whose rules are AND’d together so API results match both what the widget asks for and what the user has filtered on the surrounding Port page.
+
 ## PostMessage events
 
 The plugin runs inside an iframe. It talks to the Port host via `window.postMessage`. All messages use a `type` field to identify the event.
