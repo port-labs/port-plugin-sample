@@ -1,13 +1,14 @@
 # Port Plugin Sample
 
-A sample plugin built with React and TypeScript. The plugin receives context from the Port host via `postMessage` (user, page, params, entity, API base URL), requests a JWT for API calls, and fetches blueprints from the Port API. The build produces a single **self-contained HTML file** (`dist/index.html`) with all JavaScript and CSS inlined, suitable for embedding in Port or similar plugin hosts.
+A sample plugin built with React and TypeScript. The plugin receives context from the Port host via `postMessage` (user, page, params, entity, API base URL), requests a JWT for API calls, and fetches data from the Port API. The build produces a single **self-contained HTML file** (`dist/index.html`) with all JavaScript and CSS inlined, suitable for embedding in Port or similar plugin hosts.
 
 ## Tech stack
 
 - **React 19** + **TypeScript** 5.9
-- **TanStack React Query** for API data (blueprints; entity search hook is included but not used in the main UI)
+- **TanStack React Query** for API data (blueprints and entity search examples)
 - **Webpack 5** with `InlineChunkHtmlPlugin` (from `react-dev-utils`) to inline JS and CSS into the HTML output
 - **PostCSS** (with `postcss-preset-env`) for CSS
+- **@svgr/webpack** and **url-loader** for SVG and image assets in components
 
 ## Getting started
 
@@ -18,7 +19,7 @@ A sample plugin built with React and TypeScript. The plugin receives context fro
 
 ### API base URL
 
-Port API requests use the **`baseUrl` field** the host sends on `PLUGIN_DATA` (the API origin the iframe should call). Ensure your host includes `baseUrl` when it posts `PLUGIN_DATA`. The blueprints query runs when a token is present—without `baseUrl`, the fetch URL is invalid.
+Port API requests use the **`baseUrl` field** the host sends on `PLUGIN_DATA` (the API origin the iframe should call). The hook exposes this as `portApiBaseUrl`. Ensure your host includes `baseUrl` when it posts `PLUGIN_DATA`. Blueprint and entity-search queries run when a token is present—without `baseUrl`, the fetch URL is invalid.
 
 ### Install
 
@@ -34,7 +35,8 @@ Run the dev server with hot reload on port 9000:
 yarn dev
 ```
 
-Open [http://localhost:9000](http://localhost:9000) to preview the plugin UI. The app expects `postMessage` from a Port host (`PLUGIN_DATA`, `PORT_TOKEN`). Standalone, the token and host context are missing until you embed the page or simulate messages from the parent window.
+Open [http://localhost:9000](http://localhost:9000) to preview the plugin UI. The app expects `postMessage` from a Port host (`PLUGIN_DATA`, `PORT_TOKEN`). Standalone, the token and host context are missing until you embed the page or simulate messages from the parent window. 
+In order to simulate the plugin with `postMessage` data, you can use the dev mode in the Custom Widget creation wizard.
 
 ### Build
 
@@ -49,10 +51,9 @@ Output is written to `dist/`:
 ## How it works
 
 1. **Host communication** — When `window.parent !== window`, the plugin posts `REQUEST_PORT_TOKEN` so the host can reply with `PORT_TOKEN` (JWT). The host may also send `PLUGIN_DATA` (params, page, user, entity, **`baseUrl`**).
-2. **UI** — The app greets the user with `firstName` / `lastName` from `PLUGIN_DATA.user`, shows sample copy about the inlined bundle, and renders data cards for page, params, entity, and user via `PluginDataCard`.
+2. **UI** — The app greets the user with `firstName` / `lastName` from `PLUGIN_DATA.user`, shows sample copy about the inlined bundle, and renders data cards for page, params, entity (when present), and user via `PluginDataCard`.
 3. **Blueprints** — `BlueprintDataCard` uses `useBlueprints`: once a token exists, it calls `{baseUrl}/v1/blueprints` with `Authorization: Bearer <token>`. It shows waiting, loading, error, or empty states as appropriate. The query refetches every **5 minutes**.
-
-**Also in the repo (not wired in `App.tsx`):** `useEntities` posts to `/v1/entities/search`, and `mergeWidgetQueryWithPageQuery` merges widget and page filter rules for search bodies—useful patterns you can plug into your own widgets.
+4. **Entity search (example)** — `EntitiesSearchExample` waits for a token, loads blueprints, takes the **first** blueprint as a sample context, then calls `entitiesSearch` with a minimal body (filter by that blueprint’s identifier). The hook merges the widget query with page filters via `mergeWidgetQueryWithPageQuery` before posting to `/v1/entities/search`. The raw JSON response is shown in a card. The **`entitiesSearch`** hook is documented in code as an example to copy or adapt for your own widgets.
 
 ## PostMessage events
 
@@ -69,7 +70,7 @@ The plugin runs inside an iframe. It talks to the Port host via `window.postMess
 | Event type    | Payload | Meaning |
 |---------------|---------|---------|
 | `PORT_TOKEN`  | `{ type: 'PORT_TOKEN', token: string }` | JWT from the host. Stored and sent as `Authorization: Bearer <token>` on Port API requests. |
-| `PLUGIN_DATA` | `{ type: 'PLUGIN_DATA', params?, page?, user?, entity?, baseUrl? }` | Context from the host. **params** — plugin configuration; **page** — page filters / identifier; **user** — current user; **entity** — entity in context; **baseUrl** — Port API base URL (e.g. `https://api.getport.io`) used for `/v1/blueprints` and related hooks. Omitted fields default where noted in code (`params` / `page` / `user` / `entity` to `{}`, `baseUrl` to unset). |
+| `PLUGIN_DATA` | `{ type: 'PLUGIN_DATA', params?, page?, user?, entity?, baseUrl? }` | Context from the host. **params** — plugin configuration; **page** — page filters / identifier; **user** — current user; **entity** — entity in context; **baseUrl** — Port API base URL (e.g. `https://api.getport.io`) used for `/v1/blueprints`, `/v1/entities/search`, and related hooks. Omitted fields default where noted in code (`params` / `page` / `user` / `entity` to `{}`, `baseUrl` to unset). |
 
 ## Project structure
 
@@ -77,22 +78,23 @@ The plugin runs inside an iframe. It talks to the Port host via `window.postMess
 ├── src/
 │   ├── index.html           # HTML template (includes #plugin-root)
 │   ├── index.tsx            # React entry, QueryClientProvider, mounts into #plugin-root
-│   ├── App.tsx              # Main app: greeting, PluginDataCard rows, BlueprintDataCard
+│   ├── App.tsx              # Main app: greeting, PluginDataCard rows, EntitiesSearchExample, BlueprintDataCard
 │   ├── App.css
 │   ├── types.ts             # DataCard / PluginDataCard prop types
 │   ├── components/
 │   │   ├── index.ts
 │   │   ├── PluginDataCard.tsx
 │   │   ├── BlueprintDataCard.tsx
+│   │   ├── EntitiesSearchExample.tsx   # sample UI using entitiesSearch + mergeWidgetQueryWithPageQuery
 │   │   └── DataCard/
 │   │       ├── index.ts
 │   │       ├── DataCard.tsx
 │   │       ├── EmptySection.tsx
 │   │       └── ErrorSection.tsx
 │   ├── hooks/
-│   │   ├── usePostMessageData.ts  # PORT_TOKEN + PLUGIN_DATA (+ baseUrl)
+│   │   ├── usePostMessageData.ts  # PORT_TOKEN + PLUGIN_DATA (portApiBaseUrl from baseUrl)
 │   │   ├── useBlueprints.ts       # GET /v1/blueprints
-│   │   └── useEntities.ts         # POST /v1/entities/search (sample hook)
+│   │   └── entitiesSearch.ts      # POST /v1/entities/search (example hook; adapt for your use case)
 │   └── utils/
 │       └── mergeWidgetQueryWithPageQuery.ts  # merge widget + page query rules
 ├── webpack.config.js
