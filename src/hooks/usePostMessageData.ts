@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 export type Page = {
     identifier: string;
-    pageFilters?: Record<string, unknown>;
+    pageFilters?: Record<string, unknown>[];
 }
 
 export type User = {
