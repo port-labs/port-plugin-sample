@@ -1,11 +1,13 @@
+import { EntitySearchBody, EntitySearchRuleOrGroup } from "../hooks/entitiesSearch";
+
 export const DASHBOARD_FILTERS_META_BLUEPRINT = 'dashboard-filters-meta-blueprint';
 
 
 export function mergeWidgetQueryWithPageQuery(
-	widgetQuery: Record<string, unknown>,
+	widgetQuery: EntitySearchBody,
 	pageQuery?: Record<string, unknown>[],
 	blueprint?: Record<string, unknown>,
-): Record<string, unknown> {
+): EntitySearchBody {
 	if (!pageQuery || pageQuery.length === 0) return widgetQuery;
 
 	const relevantPageQueriesRules = pageQuery
@@ -22,12 +24,12 @@ export function mergeWidgetQueryWithPageQuery(
 	if (!blueprint || !('ownership' in blueprint)) {
 		return {
 			combinator: 'and',
-			rules: [widgetQuery, ...relevantPageQueriesRules.filter((rule) => !('property' in rule && rule.property === '$team'))],
-		};
+			rules: [widgetQuery, ...relevantPageQueriesRules.filter((rule) => !('property' in rule && rule.property === '$team'))] as EntitySearchRuleOrGroup[],
+		} satisfies EntitySearchBody;
 	}
 
 	return {
 		combinator: 'and',
-		rules: [widgetQuery, ...relevantPageQueriesRules],
-	};
+		rules: [widgetQuery, ...relevantPageQueriesRules] as EntitySearchRuleOrGroup[],
+	} satisfies EntitySearchBody;
 }

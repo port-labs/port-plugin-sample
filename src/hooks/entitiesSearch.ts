@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { usePostMessageData } from "./usePostMessageData";
+import { mergeWidgetQueryWithPageQuery } from "../utils/mergeWidgetQueryWithPageQuery";
 
 /** Leaf rule: property + operator + value */
 export interface EntitySearchRule {
@@ -27,6 +28,8 @@ export interface EntitySearchOptions {
 	attach_title_to_relation?: boolean;
 	attach_identifier_to_title_mirror_properties?: boolean;
 	allow_partial_results?: boolean;
+	/** When false, the query does not run (e.g. until required inputs exist). */
+	enabled?: boolean;
 }
 
 async function fetchEntitiesSearch(
@@ -54,11 +57,13 @@ async function fetchEntitiesSearch(
 	return res.json();
 }
 
-export function useEntities(searchBody: EntitySearchBody | null, options?: EntitySearchOptions) {
-	const { portApiBaseUrl, portToken } = usePostMessageData();
+export function entitiesSearch(blueprint: Record<string, unknown>, searchBody: EntitySearchBody, options?: EntitySearchOptions) {
+	const { portApiBaseUrl, portToken, page } = usePostMessageData();
+	const mergedSearchBody = mergeWidgetQueryWithPageQuery(searchBody, page?.pageFilters, blueprint);
+	console.log('mergedSearchBody', mergedSearchBody);
 	return useQuery({
-		queryKey: ["entities", "search", portToken, searchBody, options],
-		queryFn: () => fetchEntitiesSearch(portToken!, portApiBaseUrl, searchBody!, options),
-		enabled: !!portToken && !!searchBody,
+		queryKey: ["entities", "search", portToken, mergedSearchBody, options],
+		queryFn: () => fetchEntitiesSearch(portToken!, portApiBaseUrl, mergedSearchBody!, options),
+		enabled: !!portToken && !!mergedSearchBody && (options?.enabled ?? true),
 	});
 }
