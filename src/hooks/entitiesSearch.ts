@@ -1,3 +1,7 @@
+/**
+ * Example hook for Port entity search. Copy or adapt it to match your plugin’s
+ * queries, options, and merge behavior — it is not meant to be used as-is in production.
+ */
 import { useQuery } from "@tanstack/react-query";
 import { usePostMessageData } from "./usePostMessageData";
 import { mergeWidgetQueryWithPageQuery } from "../utils/mergeWidgetQueryWithPageQuery";
