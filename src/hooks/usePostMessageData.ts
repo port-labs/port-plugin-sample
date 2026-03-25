@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 export type Page = {
     identifier: string;
-    pageFilters?: Record<string, unknown>[];
+    pageFilters?: Record<string, any>[];
 }
 
 export type User = {
@@ -26,8 +26,8 @@ export type Entity = {
     title: string;
     icon: string
     team: string
-    properties: Record<string, unknown>;
-    relations: Record<string, unknown>;
+    properties: Record<string, any>;
+    relations: Record<string, any>;
 }
 
 
@@ -35,7 +35,7 @@ export type Entity = {
 export type Params = {
     [key: string]: {
         type: string;
-        value: unknown;
+        value: any;
     };
 }
 
