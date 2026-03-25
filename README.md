@@ -1,4 +1,4 @@
-# Port Plugin Sample
+# Port Plugin Sample (Beta)
 
 A sample plugin built with React and TypeScript. The plugin receives context from the Port host via `postMessage` (user, page, params, entity, API base URL), requests a JWT for API calls, and fetches blueprints from the Port API. The build produces a single **self-contained HTML file** (`dist/index.html`) with all JavaScript and CSS inlined, suitable for embedding in Port or similar plugin hosts.
 
