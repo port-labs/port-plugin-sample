@@ -1,5 +1,5 @@
 import './App.css';
-import { BlueprintDataCard, PluginDataCard } from './components';
+import { BlueprintDataCard, EntitiesSearchExample, PluginDataCard } from './components';
 import { usePostMessageData } from './hooks/usePostMessageData';
 
 export default function App() {
@@ -16,6 +16,7 @@ export default function App() {
 				<PluginDataCard title="Entity" data={entity} icon="📦" />
 			)}
 			<PluginDataCard title="User" data={user ?? {}} icon="👤" />
+			<EntitiesSearchExample />
 			<BlueprintDataCard />
 		</div>
 	);
