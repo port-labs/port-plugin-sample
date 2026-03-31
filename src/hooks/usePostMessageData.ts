@@ -30,6 +30,12 @@ export type Entity = {
     relations: Record<string, any>;
 }
 
+export type Theme = {
+    preference: string;
+    mode: string;
+    css: string;
+} | null;
+
 
 
 export type Params = {
@@ -44,6 +50,7 @@ export const usePostMessageData = () => {
     const [page, setPage] = useState<Page>();
     const [user, setUser] = useState<User>();
     const [entity, setEntity] = useState<Entity>();
+    const [theme, setTheme] = useState<Theme>(null);
     const [portToken, setPortToken] = useState<string | null>(null);
     const [portApiBaseUrl, setPortApiBaseUrl] = useState<string | null>(null);
 
@@ -65,6 +72,7 @@ export const usePostMessageData = () => {
                 setPage(event.data.page ?? {});
                 setUser(event.data.user ?? {})
                 setEntity(event.data.entity ?? {})
+                setTheme(event.data.theme ?? null)
                 setPortApiBaseUrl(event.data.baseUrl ?? null)
             }
         };
@@ -72,5 +80,5 @@ export const usePostMessageData = () => {
         return () => window.removeEventListener('message', handler);
     }, []);
 
-    return { params, page, user, entity, portToken, portApiBaseUrl };
+    return { params, page, user, entity, theme, portToken, portApiBaseUrl };
 };
