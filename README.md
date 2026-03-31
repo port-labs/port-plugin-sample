@@ -108,7 +108,6 @@ The host can send a `theme` object on `PLUGIN_DATA`:
 
 ```ts
 type Theme = {
-  preference: string;
   mode: string;
   css: string; // `:root { --background-primary: ...; --text-high: ...; }`
 };
