@@ -31,7 +31,6 @@ export type Entity = {
 }
 
 export type Theme = {
-    preference: string;
     mode: string;
     css: string;
 } | null;
@@ -66,7 +65,7 @@ export const usePostMessageData = () => {
                 setPortToken(event.data.token ?? null)
             };
 
-            // get plugin data from host (params, page, user, entity)
+            // get plugin data from host (params, page, user, entity, theme)
             if (event.data?.type === 'PLUGIN_DATA') {
                 setParams(event.data.params ?? {});
                 setPage(event.data.page ?? {});
@@ -80,5 +79,21 @@ export const usePostMessageData = () => {
         return () => window.removeEventListener('message', handler);
     }, []);
 
-    return { params, page, user, entity, theme, portToken, portApiBaseUrl };
+    const applyThemeCss = () => {
+        if (typeof document === "undefined") return;
+        if (!theme?.css) return;
+
+        const styleId = "port-plugin-theme";
+        let styleEl = document.getElementById(styleId) as HTMLStyleElement | null;
+
+        if (!styleEl) {
+            styleEl = document.createElement("style");
+            styleEl.id = styleId;
+            document.head.appendChild(styleEl);
+        }
+
+        styleEl.textContent = theme.css;
+    };
+
+    return { params, page, user, entity, theme, portToken, portApiBaseUrl, applyThemeCss };
 };
