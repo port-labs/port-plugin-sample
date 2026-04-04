@@ -139,4 +139,13 @@ body {
 }
 ```
 
-Common variables (non-exhaustive): `--background-primary`, `--background-dim`, `--background-contrast`, `--text-high`, `--text-medium`, `--text-low`, `--border-medium`, `--border-contrast-medium`, `--primary` (use as `rgb(var(--primary))`). The full set is defined in the CSS string the host sends in **`theme.css`**.
+Common variables you can reuse include (non‑exhaustive):
+
+- `--background-primary`: main surface/background color
+- `--background-dim` / `--background-dim-transparent`: softer backgrounds and cards
+- `--background-contrast`: high‑contrast surface
+- `--text-high` / `--text-medium` / `--text-low`: primary, secondary, and subtle text
+- `--border-medium` / `--border-contrast-medium`: border colors
+- `--primary`: RGB triple for primary color, used via `rgb(var(--primary))`
+
+The full set is defined in the CSS string the host sends in **`theme.css`**.
