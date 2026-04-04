@@ -3,8 +3,8 @@
  * queries, options, and merge behavior — it is not meant to be used as-is in production.
  */
 import { useQuery } from "@tanstack/react-query";
-import { usePostMessageData } from "./usePostMessageData";
-import { mergeWidgetQueryWithPageQuery } from "../utils/mergeWidgetQueryWithPageQuery";
+import { mergePageFilters, type Blueprint, type EntitiesQuery } from "@port-labs/plugins-sdk";
+import { usePortPluginData } from "@port-labs/plugins-sdk/react";
 
 /** Leaf rule: property + operator + value */
 export interface EntitySearchRule {
@@ -62,8 +62,12 @@ async function fetchEntitiesSearch(
 }
 
 export function entitiesSearch(blueprint: Record<string, unknown>, searchBody: EntitySearchBody, options?: EntitySearchOptions) {
-	const { portApiBaseUrl, portToken, page } = usePostMessageData();
-	const mergedSearchBody = mergeWidgetQueryWithPageQuery(searchBody, page?.pageFilters, blueprint);
+	const { portApiBaseUrl, portToken, page } = usePortPluginData();
+	const mergedSearchBody = mergePageFilters(
+		searchBody as unknown as EntitiesQuery,
+		page?.pageFilters,
+		blueprint as Blueprint,
+	) as EntitySearchBody;
 	return useQuery({
 		queryKey: ["entities", "search", portToken, mergedSearchBody, options],
 		queryFn: () => fetchEntitiesSearch(portToken!, portApiBaseUrl, mergedSearchBody!, options),

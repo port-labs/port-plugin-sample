@@ -1,12 +1,12 @@
+import { usePortPluginData } from "@port-labs/plugins-sdk/react";
 import { entitiesSearch, type EntitySearchBody } from "../hooks/entitiesSearch";
 import { useBlueprints } from "../hooks/useBlueprints";
-import { usePostMessageData } from "../hooks/usePostMessageData";
 import { DataCard } from "./DataCard/DataCard";
 import { EmptySection } from "./DataCard/EmptySection";
 import { ErrorSection } from "./DataCard/ErrorSection";
 
 export const EntitiesSearchExample = () => {
-	const { portToken } = usePostMessageData();
+	const { portToken } = usePortPluginData();
 	const blueprints = useBlueprints();
 
 	const firstBlueprint = blueprints.data?.blueprints?.[0] as Record<string, unknown> | undefined;

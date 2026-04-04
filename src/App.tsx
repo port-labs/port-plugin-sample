@@ -1,10 +1,10 @@
 import './App.css';
 import { useEffect } from 'react';
+import { usePortPluginData } from '@port-labs/plugins-sdk/react';
 import { BlueprintDataCard, EntitiesSearchExample, PluginDataCard } from './components';
-import { usePostMessageData } from './hooks/usePostMessageData';
 
 export default function App() {
-	const { params, page, user, entity, applyThemeCss } = usePostMessageData();
+	const { params, page, user, entity, applyThemeCss } = usePortPluginData();
 
 	useEffect(() => {
 		applyThemeCss();
