@@ -52,7 +52,7 @@ body {
 	color: var(--text-high, #334155);
 	margin-bottom: 12px;
 	padding-bottom: 10px;
-	border-bottom: 1px solid #e2e8f0;
+	border-bottom: 1px solid var(--border-medium, #e2e8f0);
 }
 
 .data-card__icon {
@@ -85,9 +85,10 @@ body {
 	gap: 12px;
 	align-items: baseline;
 	padding: 8px 10px;
-	background: var(--background-contrast, #fff);
+	/* Inset strip on the card: same tonal family as --background-dim (not --background-contrast, which flips per theme) */
+	background: var(--background-dim-transparent, rgba(0, 0, 0, 0.04));
 	border-radius: 6px;
-	border: 1px solid var(--border-contrast-medium, #e2e8f0);
+	border: 1px solid var(--border-medium, #e2e8f0);
 }
 
 .data-row_blueprint {
@@ -96,9 +97,9 @@ body {
 	overflow-x: auto;
 	white-space: pre-wrap;
 	word-break: break-word;
-	background: var(--background-contrast, #fff);
+	background: var(--background-dim-transparent, rgba(0, 0, 0, 0.04));
 	border-radius: 6px;
-	border: 1px solid var(--border-contrast-medium, #e2e8f0);
+	border: 1px solid var(--border-medium, #e2e8f0);
 }
 
 .data-key {

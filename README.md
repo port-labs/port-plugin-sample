@@ -1,11 +1,13 @@
 # Port Plugin Sample (Beta)
 
-A sample plugin built with React and TypeScript. The plugin receives context from the Port host via `postMessage` (user, page, params, entity, API base URL), requests a JWT for API calls, and fetches blueprints from the Port API. The build produces a single **self-contained HTML file** (`dist/index.html`) with all JavaScript and CSS inlined, suitable for embedding in Port or similar plugin hosts.
+A sample plugin built with React and TypeScript. Host context (user, page, params, entity, API base URL, theme) and the Port API JWT come from **`@port-labs/plugins-sdk`**, which bridges `postMessage` with the Port web app. The app fetches blueprints from the Port API and includes an example entity search that uses **`mergePageFilters`**. The build produces a single **self-contained HTML file** (`dist/index.html`) with all JavaScript and CSS inlined, suitable for embedding in Port or similar plugin hosts.
 
 ## Tech stack
 
 - **React 19** + **TypeScript** 5.9
-- **TanStack React Query** for API data (blueprints; entity search hook is included but not used in the main UI)
+- **`@port-labs/plugins-sdk`** — host messaging, `usePortPluginData`, `mergePageFilters`, `applyThemeCss`
+- **`zod` ^4.3** — peer dependency of the SDK (shared declaration shapes)
+- **TanStack React Query** for API data (blueprints; `entitiesSearch` example)
 - **Webpack 5** with `InlineChunkHtmlPlugin` (from `react-dev-utils`) to inline JS and CSS into the HTML output
 - **PostCSS** (with `postcss-preset-env`) for CSS
 
@@ -15,10 +17,11 @@ A sample plugin built with React and TypeScript. The plugin receives context fro
 
 - Node.js **22+** (this repo targets the Node 22 LTS line; use an [LTS](https://nodejs.org/en/about/previous-releases) release in production)
 - Yarn or npm
+- **`@port-labs/plugins-sdk`** — install from the registry when published, or point `package.json` at a local build (e.g. `file:../path/to/plugins-sdk`) and run `yarn install`.
 
 ### API base URL
 
-Port API requests use the **`baseUrl` field** the host sends on `PLUGIN_DATA` (the API origin the iframe should call). Ensure your host includes `baseUrl` when it posts `PLUGIN_DATA`. The blueprints query runs when a token is present—without `baseUrl`, the fetch URL is invalid.
+Port API requests use **`portApiBaseUrl`** from the SDK (the **`baseUrl`** field the host sends on `PLUGIN_DATA`). Ensure your host includes `baseUrl` when it posts `PLUGIN_DATA`. The blueprints query runs when a token is present—without `baseUrl`, the fetch URL is invalid.
 
 ### Install
 
@@ -48,28 +51,29 @@ Output is written to `dist/`:
 
 ## How it works
 
-1. **Host communication** — When `window.parent !== window`, the plugin posts `REQUEST_PORT_TOKEN` so the host can reply with `PORT_TOKEN` (JWT). The host may also send `PLUGIN_DATA` (params, page, user, entity, **`baseUrl`**).
-2. **UI** — The app greets the user with `firstName` / `lastName` from `PLUGIN_DATA.user`, shows sample copy about the inlined bundle, and renders data cards for page, params, entity, and user via `PluginDataCard`.
-3. **Blueprints** — `BlueprintDataCard` uses `useBlueprints`: once a token exists, it calls `{baseUrl}/v1/blueprints` with `Authorization: Bearer <token>`. It shows waiting, loading, error, or empty states as appropriate. The query refetches every **5 minutes**.
+1. **Host communication** — The SDK registers listeners for `PORT_TOKEN` and `PLUGIN_DATA`, and posts `REQUEST_PORT_TOKEN` when embedded in an iframe so the host can deliver a JWT after the iframe is ready.
+2. **UI** — `App` uses **`usePortPluginData()`** from `@port-labs/plugins-sdk/react` for `params`, `page`, `user`, `entity`, and calls **`applyThemeCss()`** in a `useEffect` so the host theme applies when `theme.css` updates.
+3. **Blueprints** — `BlueprintDataCard` uses `useBlueprints`: once `portToken` exists, it calls `{portApiBaseUrl}/v1/blueprints` with `Authorization: Bearer <token>`. The query refetches every **5 minutes**.
+4. **Entity search example** — `entitiesSearch` (in `entitiesSearch.ts`) posts to `/v1/entities/search` and merges the widget query with dashboard page filters via **`mergePageFilters`** from `@port-labs/plugins-sdk`.
 
-**Also in the repo (not wired in `App.tsx`):** `useEntities` posts to `/v1/entities/search`, and `mergeWidgetQueryWithPageQuery` merges widget and page filter rules for search bodies—useful patterns you can plug into your own widgets.
+See the SDK’s own README for **`subscribe` / `getSnapshot`**, **`initPortPluginMessaging`**, and non-React usage.
 
 ## PostMessage events
 
-The plugin runs inside an iframe. It talks to the Port host via `window.postMessage`. All messages use a `type` field to identify the event.
+The plugin runs inside an iframe. The SDK aligns with this protocol:
 
-### Plugin → Host (sent by the plugin)
+### Plugin → Host (sent by the SDK)
 
 | Event type           | When                         | Payload | Meaning |
 |----------------------|------------------------------|---------|---------|
-| `REQUEST_PORT_TOKEN` | On mount (when in iframe)    | `{ type: 'REQUEST_PORT_TOKEN' }` | Asks the host for a JWT so the plugin can call Port APIs. Posted so the host can send the token after the iframe is ready (avoids missing it on React Strict Mode double-mount). |
+| `REQUEST_PORT_TOKEN` | When messaging is initialized (iframe) | `{ type: 'REQUEST_PORT_TOKEN' }` | Asks the host for a JWT for Port API calls. |
 
-### Host → Plugin (received by the plugin)
+### Host → Plugin (handled by the SDK)
 
 | Event type    | Payload | Meaning |
 |---------------|---------|---------|
-| `PORT_TOKEN`  | `{ type: 'PORT_TOKEN', token: string }` | JWT from the host. Stored and sent as `Authorization: Bearer <token>` on Port API requests. |
-| `PLUGIN_DATA` | `{ type: 'PLUGIN_DATA', params?, page?, user?, entity?, baseUrl?, theme? }` | Context from the host. **params** — plugin configuration; **page** — page filters / identifier; **user** — current user; **entity** — entity in context; **baseUrl** — Port API base URL (e.g. `https://api.getport.io`) used for `/v1/blueprints` and related hooks; **theme** — host-provided theme object with CSS variables. Omitted fields default where noted in code (`params` / `page` / `user` / `entity` to `{}`, `baseUrl` / `theme` to unset). |
+| `PORT_TOKEN`  | `{ type: 'PORT_TOKEN', token: string }` | JWT from the host. |
+| `PLUGIN_DATA` | `{ type: 'PLUGIN_DATA', params?, page?, user?, entity?, baseUrl?, theme? }` | Context from the host. **`baseUrl`** becomes **`portApiBaseUrl`** in the React hook. |
 
 ## Project structure
 
@@ -77,24 +81,22 @@ The plugin runs inside an iframe. It talks to the Port host via `window.postMess
 ├── src/
 │   ├── index.html           # HTML template (includes #plugin-root)
 │   ├── index.tsx            # React entry, QueryClientProvider, mounts into #plugin-root
-│   ├── App.tsx              # Main app: greeting, PluginDataCard rows, BlueprintDataCard
+│   ├── App.tsx              # Main app: usePortPluginData, PluginDataCard rows, examples
 │   ├── App.css
 │   ├── types.ts             # DataCard / PluginDataCard prop types
 │   ├── components/
 │   │   ├── index.ts
 │   │   ├── PluginDataCard.tsx
 │   │   ├── BlueprintDataCard.tsx
+│   │   ├── EntitiesSearchExample.tsx
 │   │   └── DataCard/
 │   │       ├── index.ts
 │   │       ├── DataCard.tsx
 │   │       ├── EmptySection.tsx
 │   │       └── ErrorSection.tsx
-│   ├── hooks/
-│   │   ├── usePostMessageData.ts  # PORT_TOKEN + PLUGIN_DATA (+ baseUrl)
-│   │   ├── useBlueprints.ts       # GET /v1/blueprints
-│   │   └── useEntities.ts         # POST /v1/entities/search (sample hook)
-│   └── utils/
-│       └── mergeWidgetQueryWithPageQuery.ts  # merge widget + page query rules
+│   └── hooks/
+│       ├── useBlueprints.ts   # GET /v1/blueprints
+│       └── entitiesSearch.ts  # POST /v1/entities/search + mergePageFilters
 ├── webpack.config.js
 ├── tsconfig.json
 └── package.json
@@ -104,28 +106,22 @@ The app mounts into `<div id="plugin-root">` in the template. The production bui
 
 ## Theming and CSS variables
 
-The host can send a `theme` object on `PLUGIN_DATA`:
+The host can send a **`theme`** object on **`PLUGIN_DATA`**. The SDK exposes it from **`usePortPluginData()`** along with **`applyThemeCss`**, which injects or clears the theme stylesheet in `document.head` (see the SDK docs for the exact element id).
 
-```ts
-type Theme = {
-  mode: string;
-  css: string; // `:root { --background-primary: ...; --text-high: ...; }`
-};
+```tsx
+import { useEffect } from 'react';
+import { usePortPluginData } from '@port-labs/plugins-sdk/react';
+
+function App() {
+  const { applyThemeCss } = usePortPluginData();
+
+  useEffect(() => {
+    applyThemeCss();
+  }, [applyThemeCss]);
+}
 ```
 
-The plugin stores this on `theme` via `usePostMessageData`. To opt in to applying the host theme CSS, use the helper returned from the hook:
-
-```ts
-const { applyThemeCss } = usePostMessageData();
-
-useEffect(() => {
-  applyThemeCss();
-}, [applyThemeCss]);
-```
-
-This injects a `<style id="port-plugin-theme">` tag with the theme's `css` into `document.head`.
-
-`App.css` demonstrates how to consume some of the variables with safe fallbacks, for example:
+`App.css` uses theme variables with fallbacks, for example:
 
 ```css
 body {
@@ -138,16 +134,19 @@ body {
 }
 
 .data-row {
-  background: var(--background-contrast, #fff);
-  border-color: var(--border-contrast-medium, #e2e8f0);
+  /* Prefer inset surfaces (e.g. --background-dim-transparent) over --background-contrast so rows stay on the same tonal mode as the card in both light and dark host themes */
+  background: var(--background-dim-transparent, rgba(0, 0, 0, 0.04));
+  border-color: var(--border-medium, #e2e8f0);
 }
 ```
 
 Common variables you can reuse include (non‑exhaustive):
 
 - `--background-primary`: main surface/background color
-- `--background-dim` / `--background-dim-transparent`: softer backgrounds and cards
-- `--background-contrast`: high‑contrast surface
+- `--background-dim` / `--background-dim-transparent`: softer backgrounds and cards (good for inset rows on a card)
+- `--background-contrast`: high‑contrast surface (can invert between light/dark host themes—inset rows in this sample use `--background-dim-transparent` instead)
 - `--text-high` / `--text-medium` / `--text-low`: primary, secondary, and subtle text
 - `--border-medium` / `--border-contrast-medium`: border colors
 - `--primary`: RGB triple for primary color, used via `rgb(var(--primary))`
+
+The full set is defined in the CSS string the host sends in **`theme.css`**.

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { usePostMessageData } from "./usePostMessageData";
+import { usePortPluginData } from "@port-labs/plugins-sdk/react";
 
 
 async function fetchBlueprints(token: string, portApiBaseUrl: string | null) {
@@ -15,7 +15,7 @@ async function fetchBlueprints(token: string, portApiBaseUrl: string | null) {
 }
 
 export function useBlueprints() {
-    const { portApiBaseUrl, portToken } = usePostMessageData();
+    const { portApiBaseUrl, portToken } = usePortPluginData();
     return useQuery({
         queryKey: ['blueprints', portToken],
         queryFn: () => fetchBlueprints(portToken!, portApiBaseUrl),
