@@ -1,9 +1,14 @@
 import './App.css';
+import { useEffect } from 'react';
 import { BlueprintDataCard, EntitiesSearchExample, PluginDataCard } from './components';
 import { usePostMessageData } from './hooks/usePostMessageData';
 
 export default function App() {
-	const { params, page, user, entity } = usePostMessageData();
+	const { params, page, user, entity, applyThemeCss } = usePostMessageData();
+
+	useEffect(() => {
+		applyThemeCss();
+	}, [applyThemeCss]);
 
 	return (
 		<div className="plugin-container">

@@ -30,6 +30,11 @@ export type Entity = {
     relations: Record<string, any>;
 }
 
+export type Theme = {
+    mode: string;
+    css: string;
+} | null;
+
 
 
 export type Params = {
@@ -44,6 +49,7 @@ export const usePostMessageData = () => {
     const [page, setPage] = useState<Page>();
     const [user, setUser] = useState<User>();
     const [entity, setEntity] = useState<Entity>();
+    const [theme, setTheme] = useState<Theme>(null);
     const [portToken, setPortToken] = useState<string | null>(null);
     const [portApiBaseUrl, setPortApiBaseUrl] = useState<string | null>(null);
 
@@ -59,12 +65,13 @@ export const usePostMessageData = () => {
                 setPortToken(event.data.token ?? null)
             };
 
-            // get plugin data from host (params, page, user, entity)
+            // get plugin data from host (params, page, user, entity, theme)
             if (event.data?.type === 'PLUGIN_DATA') {
                 setParams(event.data.params ?? {});
                 setPage(event.data.page ?? {});
                 setUser(event.data.user ?? {})
                 setEntity(event.data.entity ?? {})
+                setTheme(event.data.theme ?? null)
                 setPortApiBaseUrl(event.data.baseUrl ?? null)
             }
         };
@@ -72,5 +79,21 @@ export const usePostMessageData = () => {
         return () => window.removeEventListener('message', handler);
     }, []);
 
-    return { params, page, user, entity, portToken, portApiBaseUrl };
+    const applyThemeCss = () => {
+        if (typeof document === "undefined") return;
+        if (!theme?.css) return;
+
+        const styleId = "port-plugin-theme";
+        let styleEl = document.getElementById(styleId) as HTMLStyleElement | null;
+
+        if (!styleEl) {
+            styleEl = document.createElement("style");
+            styleEl.id = styleId;
+            document.head.appendChild(styleEl);
+        }
+
+        styleEl.textContent = theme.css;
+    };
+
+    return { params, page, user, entity, theme, portToken, portApiBaseUrl, applyThemeCss };
 };

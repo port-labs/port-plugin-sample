@@ -69,7 +69,7 @@ The plugin runs inside an iframe. It talks to the Port host via `window.postMess
 | Event type    | Payload | Meaning |
 |---------------|---------|---------|
 | `PORT_TOKEN`  | `{ type: 'PORT_TOKEN', token: string }` | JWT from the host. Stored and sent as `Authorization: Bearer <token>` on Port API requests. |
-| `PLUGIN_DATA` | `{ type: 'PLUGIN_DATA', params?, page?, user?, entity?, baseUrl? }` | Context from the host. **params** — plugin configuration; **page** — page filters / identifier; **user** — current user; **entity** — entity in context; **baseUrl** — Port API base URL (e.g. `https://api.getport.io`) used for `/v1/blueprints` and related hooks. Omitted fields default where noted in code (`params` / `page` / `user` / `entity` to `{}`, `baseUrl` to unset). |
+| `PLUGIN_DATA` | `{ type: 'PLUGIN_DATA', params?, page?, user?, entity?, baseUrl?, theme? }` | Context from the host. **params** — plugin configuration; **page** — page filters / identifier; **user** — current user; **entity** — entity in context; **baseUrl** — Port API base URL (e.g. `https://api.getport.io`) used for `/v1/blueprints` and related hooks; **theme** — host-provided theme object with CSS variables. Omitted fields default where noted in code (`params` / `page` / `user` / `entity` to `{}`, `baseUrl` / `theme` to unset). |
 
 ## Project structure
 
@@ -101,3 +101,53 @@ The plugin runs inside an iframe. It talks to the Port host via `window.postMess
 ```
 
 The app mounts into `<div id="plugin-root">` in the template. The production build inlines the compiled bundle into `dist/index.html`.
+
+## Theming and CSS variables
+
+The host can send a `theme` object on `PLUGIN_DATA`:
+
+```ts
+type Theme = {
+  mode: string;
+  css: string; // `:root { --background-primary: ...; --text-high: ...; }`
+};
+```
+
+The plugin stores this on `theme` via `usePostMessageData`. To opt in to applying the host theme CSS, use the helper returned from the hook:
+
+```ts
+const { applyThemeCss } = usePostMessageData();
+
+useEffect(() => {
+  applyThemeCss();
+}, [applyThemeCss]);
+```
+
+This injects a `<style id="port-plugin-theme">` tag with the theme's `css` into `document.head`.
+
+`App.css` demonstrates how to consume some of the variables with safe fallbacks, for example:
+
+```css
+body {
+  background: rgb(var(--primary, 245, 247, 250));
+  color: var(--text-high, #1a1a2e);
+}
+
+.plugin-container {
+  background: var(--background-primary, #fff);
+}
+
+.data-row {
+  background: var(--background-contrast, #fff);
+  border-color: var(--border-contrast-medium, #e2e8f0);
+}
+```
+
+Common variables you can reuse include (non‑exhaustive):
+
+- `--background-primary`: main surface/background color
+- `--background-dim` / `--background-dim-transparent`: softer backgrounds and cards
+- `--background-contrast`: high‑contrast surface
+- `--text-high` / `--text-medium` / `--text-low`: primary, secondary, and subtle text
+- `--border-medium` / `--border-contrast-medium`: border colors
+- `--primary`: RGB triple for primary color, used via `rgb(var(--primary))`
