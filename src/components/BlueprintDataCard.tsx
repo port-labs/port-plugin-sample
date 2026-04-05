@@ -1,11 +1,11 @@
+import { usePortPluginData } from "@port-labs/plugins-sdk/react";
 import { useBlueprints } from "../hooks/useBlueprints";
-import { usePostMessageData } from "../hooks/usePostMessageData";
 import { DataCard } from "./DataCard/DataCard";
 import { EmptySection } from "./DataCard/EmptySection";
 import { ErrorSection } from "./DataCard/ErrorSection";
 
 export const BlueprintDataCard = () => {
-    const { portToken } = usePostMessageData();
+    const { portToken } = usePortPluginData();
     const blueprints = useBlueprints()
 
     if (!portToken) {
