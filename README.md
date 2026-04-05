@@ -6,7 +6,6 @@ A sample plugin built with React and TypeScript. Host context (user, page, param
 
 - **React 19** + **TypeScript** 5.9
 - **`@port-labs/plugins-sdk`** — host messaging, `usePortPluginData`, `mergePageFilters`, `applyThemeCss`
-- **`zod` ^4.3** — peer dependency of the SDK (shared declaration shapes)
 - **TanStack React Query** for API data (blueprints; `entitiesSearch` example)
 - **Webpack 5** with `InlineChunkHtmlPlugin` (from `react-dev-utils`) to inline JS and CSS into the HTML output
 - **PostCSS** (with `postcss-preset-env`) for CSS
