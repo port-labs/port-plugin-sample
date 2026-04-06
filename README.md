@@ -16,7 +16,7 @@ A sample plugin built with React and TypeScript. Host context (user, page, param
 
 - Node.js **22+** (this repo targets the Node 22 LTS line; use an [LTS](https://nodejs.org/en/about/previous-releases) release in production)
 - Yarn or npm
-- **`@port-labs/plugins-sdk`** — install from the registry when published, or point `package.json` at a local build (e.g. `file:../path/to/plugins-sdk`) and run `yarn install`.
+- **`@port-labs/plugins-sdk`**
 
 ### API base URL
 
