@@ -1642,10 +1642,10 @@
     tslib "^2.8.1"
     tsyringe "^4.10.0"
 
-"@port-labs/plugins-sdk@^0.0.1":
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/@port-labs/plugins-sdk/-/plugins-sdk-0.0.1.tgz#54535fa112a227b7780171df82aaaa49484f4114"
-  integrity sha512-dbfqNkiavuYC9XzcBiBNlhvhF8atc0zedOz+QLO254EQ1wTVWJKLd/9PgPtcFHAdrMe+4TqFNYbfHl6pom6/8A==
+"@port-labs/plugins-sdk@^0.0.2":
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/@port-labs/plugins-sdk/-/plugins-sdk-0.0.2.tgz#140e4a7c192aaed82f7af8cc08e3e45412b4a796"
+  integrity sha512-gfU+JO7nXLCVVbzJkyvPSGiM4VefiPZ3UEUeID2sMw7am1cCpMyaLrX+cIeES6ZVxzJUPBySSgiVfLN+u2tiag==
 
 "@svgr/babel-plugin-add-jsx-attribute@8.0.0":
   version "8.0.0"
