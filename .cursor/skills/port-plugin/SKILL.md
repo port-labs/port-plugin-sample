@@ -8,21 +8,27 @@ description: >-
 
 Port plugins are single HTML artifacts that talk to the Port host over `postMessage` and call the Port API with a JWT the host provides. Prefer matching Port’s look-and-feel via the SDK theme, avoid persisting secrets, and respect CSP and the one-file size limit.
 
-## Before you write code: intake (reduce back-and-forth)
+When you work with a **person**, keep a **conversational** tone: plain language, room for them to correct you, and short explanations of *why* something matters. Reserve dense bullet lists for **fixed platform rules** (CSP, artifact size, SDK facts) where precision beats chatty prose.
 
-Ask enough up front so the first implementation fits. If the user’s request does **not** clearly say what should appear in the widget (screens, components, metrics, tables, actions, copy), **ask them directly what they want shown** in the plugin and any interactions they expect—do not assume a default UI.
+## Before you write code: talk it through first
 
-Cover at least:
+Treat intake as a **short design conversation**, not a form. **Ask one or two questions at a time**, use ordinary language, and **echo back** what you understood (“So on an entity page you want a compact table of…”) before you ask the next thing. Skip topics the user already spelled out; do not paste a long questionnaire in a single message.
 
-1. **Goal** — What should the user **see** in the plugin (layout, components, data density) and **do** there (read-only summary, table, chart, actions)? Clarify labels, empty states, and primary vs secondary content when the request is vague.
-2. **Where the plugin is shown (Port placement)** — Ask explicitly: will this run on a **dashboard page** (widget on a dashboard, with `page` context and optional `page.pageFilters`), on a **specific entity page** (context of one catalog entity, with `entity` from `usePortPluginData()` typically present), or **both**? If the user is unsure, describe how behavior should differ when `entity` is missing vs present, and whether operators will add the same HTML artifact to multiple page types. This choice drives whether you rely on `entity`, on `page` / `mergePageFilters`, or on branching logic for each host.
-3. **Data** — Blueprints only, entity search, single entity properties, relations, aggregates?
-4. **Parameters** — Which values must be **plugin custom params** (blueprint identifier, property paths, relation, query rules, labels) instead of hard-coded literals?
-5. **Filters** — Should results respect dashboard page filters? (If yes, plan for `mergePageFilters`.)
-6. **Empty and error UX** — Loading, no data, API errors, missing token or `baseUrl`.
-7. **Secrets** — Confirm no API keys, tokens, or PII will be embedded in source or stored in the browser.
+If it is still unclear **what should appear** in the widget (layout, components, metrics, actions, copy), ask in your own words what they want people to **see and do** there—**do not** invent a full UI without their say-so.
 
-If the user has not specified theming, default to **Port styling** via `applyThemeCss()` and CSS variables from the host `theme` (see “Look-and-feel”).
+**Topics to weave in as the chat unfolds** (order flexibly):
+
+- **What to show** — Density, main vs secondary content, labels, empty states, and any interactions (purely read-only vs actions), only where the brief is vague.
+- **Where it runs in Port** — Dashboard widget (`page`, optional `page.pageFilters`) vs **entity page** (`entity` from `usePortPluginData()` usually available) vs both; if they are unsure, offer a simple either/or and how behavior differs when `entity` is missing.
+- **Data** — What catalog or API information backs the UI (blueprints, entity search, one entity’s fields, relations, etc.).
+- **Reusable configuration** — Which identifiers or property paths should become **plugin custom params** instead of literals in code.
+- **Dashboard filters** — Whether results should follow the dashboard’s filters when relevant (`mergePageFilters`).
+- **Rough edges** — Loading, no data, API errors, missing token or `baseUrl`.
+- **Secrets** — Gently confirm they are not asking you to bake in API keys or persist tokens in the browser.
+
+Framing helps: e.g. “To hook this up to the right SDK fields…” or “So the build matches how Port will host it…” rather than a block of demands.
+
+If they have not mentioned theming, you can say you will default to **Port styling** via `applyThemeCss()` and host CSS variables (see “Look-and-feel”) unless they want something different.
 
 ## Default implementation path (align with port-plugin-sample)
 
