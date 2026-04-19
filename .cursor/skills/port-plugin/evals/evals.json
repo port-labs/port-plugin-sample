@@ -1,0 +1,23 @@
+{
+  "skill_name": "port-plugin",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I need a Port dashboard plugin that shows entities from our `service` blueprint in a compact table. The blueprint identifier must come from a custom plugin param `blueprintId`, not hard-coded. Use the SDK, respect page filters, and match Port theming. Output the key files and how I build to a single HTML.",
+      "expected_output": "Intake confirms params and mergePageFilters; implementation uses usePortPluginData, applyThemeCss, mergePageFilters; no localStorage for token; webpack/single HTML mentioned; CSP-safe fetches only to portApiBaseUrl.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our Port plugin fetch to api.github.com for stars is blocked. Fix the approach under Port CSP and keep one HTML artifact under 10 MB.",
+      "expected_output": "Explains connect-src limits; removes or replaces third-party fetch with allowed Port API usage or inlined data; reminds 10 MB single file constraint.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "After `yarn build`, walk me through uploading this plugin with the official tooling and links.",
+      "expected_output": "Points to @port-labs/port-plugins-cli and Port docs; does not invent CLI flags; mentions verifying dist/index.html size.",
+      "files": []
+    }
+  ]
+}
