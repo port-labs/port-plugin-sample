@@ -10,10 +10,12 @@ Port plugins are single HTML artifacts that talk to the Port host over `postMess
 
 ## Before you write code: intake (reduce back-and-forth)
 
-Ask enough up front so the first implementation fits. Cover at least:
+Ask enough up front so the first implementation fits. If the user’s request does **not** clearly say what should appear in the widget (screens, components, metrics, tables, actions, copy), **ask them directly what they want shown** in the plugin and any interactions they expect—do not assume a default UI.
 
-1. **Goal** — What should the user see or do (read-only summary, table, chart, actions)?
-2. **Host context** — Dashboard widget vs entity page? Is `entity` from `usePortPluginData()` required?
+Cover at least:
+
+1. **Goal** — What should the user **see** in the plugin (layout, components, data density) and **do** there (read-only summary, table, chart, actions)? Clarify labels, empty states, and primary vs secondary content when the request is vague.
+2. **Where the plugin is shown (Port placement)** — Ask explicitly: will this run on a **dashboard page** (widget on a dashboard, with `page` context and optional `page.pageFilters`), on a **specific entity page** (context of one catalog entity, with `entity` from `usePortPluginData()` typically present), or **both**? If the user is unsure, describe how behavior should differ when `entity` is missing vs present, and whether operators will add the same HTML artifact to multiple page types. This choice drives whether you rely on `entity`, on `page` / `mergePageFilters`, or on branching logic for each host.
 3. **Data** — Blueprints only, entity search, single entity properties, relations, aggregates?
 4. **Parameters** — Which values must be **plugin custom params** (blueprint identifier, property paths, relation, query rules, labels) instead of hard-coded literals?
 5. **Filters** — Should results respect dashboard page filters? (If yes, plan for `mergePageFilters`.)
