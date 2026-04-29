@@ -9,6 +9,7 @@ import useHandleCellKeyDown from '../useHandleCellKeyDown';
 import CellEditor from './CellEditor';
 import type { CellWrapperEditorPassthrough, CellWrapperEditorProps, InternalEditorProps } from './CellEditor/types';
 import CellEditorPortal from './CellEditorPortal';
+import CellExpanderPortal from './CellExpanderPortal';
 import EditCellButton from './EditCellButton';
 import ExpandCellButton from './ExpandCellButton';
 
@@ -144,7 +145,9 @@ function CellWrapper<T extends unknown>(props: CellWrapperProps<T>) {
 				)}
 			</div>
 			{isExpandable && showExpandView && (
-				<CellExpander value={props.value} {...expanderProps} onClose={() => setShowExpandView(false)} />
+				<CellExpanderPortal>
+					<CellExpander value={props.value} {...expanderProps} onClose={() => setShowExpandView(false)} />
+				</CellExpanderPortal>
 			)}
 		</>
 	);
