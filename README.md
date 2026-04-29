@@ -1,151 +1,154 @@
-# Port Plugin Sample (Beta)
+# Table plugin sample
 
-A sample plugin built with React and TypeScript. Host context (user, page, params, entity, API base URL, theme) and the Port API JWT come from **`@port-labs/plugins-sdk`**, which bridges `postMessage` with the Port web app. The app fetches blueprints from the Port API and includes an example entity search that uses **`mergePageFilters`**. The build produces a single **self-contained HTML file** (`dist/index.html`) with all JavaScript and CSS inlined, suitable for embedding in Port or similar plugin hosts.
+A minimal Port-style plugin built with **React** and **TypeScript**. The UI is a **typed data table**: each column declares a `type`, and `cellTypeRegistry` maps that type to a cell renderer. The production build emits a single self-contained **`dist/index.html`** (JS and CSS inlined via Webpack), suitable for embedding in Port or similar hosts.
+
+Host **theme** and **`applyThemeCss`** come from **`@port-labs/plugins-sdk`**; the grid applies light/dark classes from `theme.mode`.
 
 ## Tech stack
 
 - **React 19** + **TypeScript** 5.9
-- **`@port-labs/plugins-sdk`** — host messaging, `usePortPluginData`, `mergePageFilters`, `applyThemeCss`
-- **TanStack React Query** for API data (blueprints; `entitiesSearch` example)
-- **Webpack 5** with `InlineChunkHtmlPlugin` (from `react-dev-utils`) to inline JS and CSS into the HTML output
-- **PostCSS** (with `postcss-preset-env`) for CSS
+- **`@port-labs/port-react-data-grid`** — `DataGrid`, frozen columns, virtualization-friendly layout
+- **`@port-labs/plugins-sdk`** — `usePortPluginData`, `applyThemeCss` (theme when embedded)
+- **TanStack React Query** — `QueryClientProvider` at the app root (ready if you add API hooks)
+- **Webpack 5** + `InlineChunkHtmlPlugin` — inlined bundle in `index.html`
+- **PostCSS** (`postcss-preset-env`)
+
+**Note:** `@port-labs/port-react-data-grid` expects the **`ecij`** package at runtime; it is listed in this project’s `dependencies` so installs resolve correctly.
 
 ## Getting started
 
 ### Prerequisites
 
-- Node.js **22+** (this repo targets the Node 22 LTS line; use an [LTS](https://nodejs.org/en/about/previous-releases) release in production)
-- Yarn or npm
-- **`@port-labs/plugins-sdk`**
-
-### API base URL
-
-Port API requests use **`portApiBaseUrl`** from the SDK (the **`baseUrl`** field the host sends on `PLUGIN_DATA`). Ensure your host includes `baseUrl` when it posts `PLUGIN_DATA`. The blueprints query runs when a token is present—without `baseUrl`, the fetch URL is invalid.
+- Node.js **22+**
+- npm or Yarn
 
 ### Install
 
 ```bash
-yarn install
+npm install
 ```
 
 ### Development
 
-Run the dev server with hot reload on port 9000:
-
 ```bash
-yarn dev
+npm run dev
 ```
 
-Open [http://localhost:9000](http://localhost:9000) to preview the plugin UI. The app expects `postMessage` from a Port host (`PLUGIN_DATA`, `PORT_TOKEN`). Standalone, the token and host context are missing until you embed the page or simulate messages from the parent window.
+Open [http://localhost:9000](http://localhost:9000). Without a Port host, `PLUGIN_DATA` / token may be absent; the table demo still runs for local styling checks.
 
 ### Build
 
 ```bash
-yarn build
+npm run build
 ```
 
-Output is written to `dist/`:
+- **`dist/index.html`** — single file with inlined JS/CSS.
 
-- **`dist/index.html`** — single HTML file with inlined JS and CSS, ready to host or embed in Port.
+## Table module
 
-## How it works
+### Public API (`src/table/index.ts`)
 
-1. **Host communication** — The SDK registers listeners for `PORT_TOKEN` and `PLUGIN_DATA`, and posts `REQUEST_PORT_TOKEN` when embedded in an iframe so the host can deliver a JWT after the iframe is ready.
-2. **UI** — `App` uses **`usePortPluginData()`** from `@port-labs/plugins-sdk/react` for `params`, `page`, `user`, `entity`, and calls **`applyThemeCss()`** in a `useEffect` so the host theme applies when `theme.css` updates.
-3. **Blueprints** — `BlueprintDataCard` uses `useBlueprints`: once `portToken` exists, it calls `{portApiBaseUrl}/v1/blueprints` with `Authorization: Bearer <token>`. The query refetches every **5 minutes**.
-4. **Entity search example** — `entitiesSearch` (in `entitiesSearch.ts`) posts to `/v1/entities/search` and merges the widget query with dashboard page filters via **`mergePageFilters`** from `@port-labs/plugins-sdk`.
+| Export | Role |
+| --- | --- |
+| **`TypedDataTable`** | Grid component: `columns`, `rows`, optional `height`, `rowKeyField`. |
+| **`TypedDataTableProps`** | Props type for `TypedDataTable`. |
+| **`TypedColumn`**, **`TypedRow`**, **`ColumnCellType`** | Column/row typing; each column has `key`, `name`, `type`, and type-specific options. |
+| **`COLUMN_CELL_TYPES`** | Const array of supported `type` string literals. |
+| **`renderTypedCell`** | `switch` on `column.type` → renderer; extend here for new column types. |
 
-See the SDK’s own README for **`subscribe` / `getSnapshot`**, **`initPortPluginMessaging`**, and non-React usage.
+`TypedDataTable` wires **`TableFocusProvider`**, host **`theme.mode`** → `rdg-dark` / `rdg-light`, and imports **`table/table.css`** plus the grid package stylesheet.
 
-## PostMessage events
+### Column types → cell renderers
 
-The plugin runs inside an iframe. The SDK aligns with this protocol:
+Mapping is implemented in **`src/table/cellTypeRegistry.tsx`**. Each renderer lives under **`src/table/cells/CellRenderers/`**:
 
-### Plugin → Host (sent by the SDK)
+| Column `type` | Component | Notes |
+| --- | --- | --- |
+| `text` | `TextCellRenderer` | Truncation, optional edit/copy/expand. |
+| `number` | `NumberCellRenderer` | |
+| `boolean` | `BooleanCellRenderer` | |
+| `dateTime` | `DateTimeCellRenderer` | Optional `dateFormat` on column. |
+| `dateTimeArray` | `DateTimeArrayCellRenderer` | |
+| `url` | `UrlCellRenderer` | |
+| `labeledUrl` | `LabeledUrlCellRenderer` | `{ url, displayText }`. |
+| `multiUrl` | `MultiUrlCellRenderer` | |
+| `multiLabeledUrl` | `MultiLabeledUrlCellRenderer` | |
+| `array` | `ArrayCellRenderer` | |
+| `jsonArray` | `JsonArrayCellRenderer` | |
+| `json` | `JSONCellRenderer` | |
+| `code` | `CodeCellRenderer` | Column `language`: `yaml` \| `proto` \| `json`. |
+| `markdown` | `MarkdownCellRenderer` | |
+| `timer` | `TimerCellRenderer` | ISO deadline strings. |
+| `label` | `LabelCellRenderer` | Optional `color`, `tooltip`. |
+| `enumArray` | `EnumArrayCellRenderer` | Optional `enumOptions`, `colors`. |
+| `invalid` | `InvalidCellRenderer` | Fallback for bad values. |
 
-| Event type           | When                         | Payload | Meaning |
-|----------------------|------------------------------|---------|---------|
-| `REQUEST_PORT_TOKEN` | When messaging is initialized (iframe) | `{ type: 'REQUEST_PORT_TOKEN' }` | Asks the host for a JWT for Port API calls. |
+Re-exports for convenience: **`src/table/cells/CellRenderers/index.ts`**.
 
-### Host → Plugin (handled by the SDK)
+### Cell shell: wrapper, editor, expand
 
-| Event type    | Payload | Meaning |
-|---------------|---------|---------|
-| `PORT_TOKEN`  | `{ type: 'PORT_TOKEN', token: string }` | JWT from the host. |
-| `PLUGIN_DATA` | `{ type: 'PLUGIN_DATA', params?, page?, user?, entity?, baseUrl?, theme? }` | Context from the host. **`baseUrl`** becomes **`portApiBaseUrl`** in the React hook. |
+Most renderers use **`CellWrapper`** (`src/table/cells/CellWrapper/`):
 
-## Project structure
+- **Copy** / **edit** / **expand** affordances (when enabled).
+- **`CellEditorPortal`** — in-cell editor positioned via portal.
+- **`CellExpanderPortal`** — expand dialogs portaled to `document.body` so `position: fixed` overlays are not clipped by the grid.
+- **`CellExpander`** — `EXPANDER_TYPE.JSON` (`JSONCellExpander` → `SimpleReadOnlyCodeDialog`) or `EXPANDER_TYPE.DIALOG` (custom `dialog(onClose)` from the renderer).
+
+Editors under **`CellWrapper/CellEditor/components/`**: boolean, code, date/time, markdown modal, multi-select, select, text.
+
+Shared UI in **`src/table/cells/`**: `CopyButton`, `EnumsListDialog`, `LabelListDialog`, `UrlsListDialog`, `NoResults`, `SimpleReadOnlyCodeDialog`, focus/key helpers, etc.
+
+### Shims (`src/table/shims/`)
+
+Lightweight stand-ins for Port UI primitives (`anchor-ui`, `anchor-icons`), **dataTestId**, dates/numbers, **dayjs** setup—so the table bundle stays self-contained.
+
+### Demo app
+
+- **`src/App.tsx`** — `applyThemeCss`, host color scheme, renders **`TypedTableDemo`**.
+- **`src/components/TypedTableDemo.tsx`** — example `TypedColumn[]` / `TypedRow[]` wired to **`TypedDataTable`**.
+
+### Optional hooks (not used by the demo UI)
+
+- **`src/hooks/useBlueprints.ts`** — example GET blueprints when a Port token exists.
+- **`src/hooks/entitiesSearch.ts`** — example entity search with **`mergePageFilters`** from the SDK.
+
+## Project layout
 
 ```
-├── src/
-│   ├── index.html           # HTML template (includes #plugin-root)
-│   ├── index.tsx            # React entry, QueryClientProvider, mounts into #plugin-root
-│   ├── App.tsx              # Main app: usePortPluginData, PluginDataCard rows, examples
-│   ├── App.css
-│   ├── types.ts             # DataCard / PluginDataCard prop types
-│   ├── components/
-│   │   ├── index.ts
-│   │   ├── PluginDataCard.tsx
-│   │   ├── BlueprintDataCard.tsx
-│   │   ├── EntitiesSearchExample.tsx
-│   │   └── DataCard/
-│   │       ├── index.ts
-│   │       ├── DataCard.tsx
-│   │       ├── EmptySection.tsx
-│   │       └── ErrorSection.tsx
-│   └── hooks/
-│       ├── useBlueprints.ts   # GET /v1/blueprints
-│       └── entitiesSearch.ts  # POST /v1/entities/search + mergePageFilters
-├── webpack.config.js
-├── tsconfig.json
-└── package.json
+src/
+  index.html
+  index.tsx                 # QueryClientProvider, mount #plugin-root
+  App.tsx
+  App.css
+  portHostTheme.ts          # theme.mode → color-scheme / rdg class
+  types.ts                  # Misc TS interfaces (legacy / shared)
+  components/
+    TypedTableDemo.tsx      # Sample columns & rows
+  hooks/
+    useBlueprints.ts
+    entitiesSearch.ts
+  table/
+    index.ts                # Public exports
+    TypedDataTable.tsx
+    columnTypes.ts
+    cellTypeRegistry.tsx
+    table.css
+    useTableFocusScopeValue.ts
+    cells/
+      CellRenderers/        # Per-type renderers (see table above)
+      CellWrapper/
+      CellExpander/
+      …                     # dialogs, copy, editors, hooks
+    shims/
+webpack.config.js
+tsconfig.json
+package.json
 ```
 
-The app mounts into `<div id="plugin-root">` in the template. The production build inlines the compiled bundle into `dist/index.html`.
+## Theming
 
-## Theming and CSS variables
+When embedded, the host sends **`theme`** on **`PLUGIN_DATA`**; call **`applyThemeCss()`** (as in `App.tsx`) so CSS variables apply. `TypedDataTable` uses **`theme.mode`** for **`rdg-dark` / `rdg-light`** on the grid. Without host data, local dev defaults to a light-friendly scheme.
 
-The host can send a **`theme`** object on **`PLUGIN_DATA`**. The SDK exposes it from **`usePortPluginData()`** along with **`applyThemeCss`**, which injects or clears the theme stylesheet in `document.head` (see the SDK docs for the exact element id).
+Useful CSS variables (with fallbacks in `table.css` / `App.css`) include `--background-primary`, `--text-high`, `--text-medium`, `--border-low`, and grid-specific classes under `.typed-data-table`.
 
-```tsx
-import { useEffect } from 'react';
-import { usePortPluginData } from '@port-labs/plugins-sdk/react';
-
-function App() {
-  const { applyThemeCss } = usePortPluginData();
-
-  useEffect(() => {
-    applyThemeCss();
-  }, [applyThemeCss]);
-}
-```
-
-`App.css` uses theme variables with fallbacks, for example:
-
-```css
-body {
-  background: rgb(var(--primary, 245, 247, 250));
-  color: var(--text-high, #1a1a2e);
-}
-
-.plugin-container {
-  background: var(--background-primary, #fff);
-}
-
-.data-row {
-  /* Prefer inset surfaces (e.g. --background-dim-transparent) over --background-contrast so rows stay on the same tonal mode as the card in both light and dark host themes */
-  background: var(--background-dim-transparent, rgba(0, 0, 0, 0.04));
-  border-color: var(--border-medium, #e2e8f0);
-}
-```
-
-Common variables you can reuse include (non‑exhaustive):
-
-- `--background-primary`: main surface/background color
-- `--background-dim` / `--background-dim-transparent`: softer backgrounds and cards (good for inset rows on a card)
-- `--background-contrast`: high‑contrast surface (can invert between light/dark host themes—inset rows in this sample use `--background-dim-transparent` instead)
-- `--text-high` / `--text-medium` / `--text-low`: primary, secondary, and subtle text
-- `--border-medium` / `--border-contrast-medium`: border colors
-- `--primary`: RGB triple for primary color, used via `rgb(var(--primary))`
-
-The full set is defined in the CSS string the host sends in **`theme.css`**.
+For **`postMessage`** shapes (`PORT_TOKEN`, `PLUGIN_DATA`, `REQUEST_PORT_TOKEN`), see the **`@port-labs/plugins-sdk`** documentation.

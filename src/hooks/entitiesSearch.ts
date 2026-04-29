@@ -2,9 +2,9 @@
  * Example hook for Port entity search. Copy or adapt it to match your plugin’s
  * queries, options, and merge behavior — it is not meant to be used as-is in production.
  */
-import { useQuery } from "@tanstack/react-query";
-import { mergePageFilters, type Blueprint, type EntitiesQuery } from "@port-labs/plugins-sdk";
-import { usePortPluginData } from "@port-labs/plugins-sdk/react";
+import { type Blueprint, type EntitiesQuery, mergePageFilters } from '@port-labs/plugins-sdk';
+import { usePortPluginData } from '@port-labs/plugins-sdk/react';
+import { useQuery } from '@tanstack/react-query';
 
 /** Leaf rule: property + operator + value */
 export interface EntitySearchRule {
@@ -15,7 +15,7 @@ export interface EntitySearchRule {
 
 /** Nested rule group: combinator + rules (can be leaf rules or more groups) */
 export interface EntitySearchRuleGroup {
-	combinator: "and" | "or";
+	combinator: 'and' | 'or';
 	rules: EntitySearchRuleOrGroup[];
 }
 
@@ -23,7 +23,7 @@ export type EntitySearchRuleOrGroup = EntitySearchRule | EntitySearchRuleGroup;
 
 /** Top-level body for POST /v1/entities/search */
 export interface EntitySearchBody {
-	combinator: "and" | "or";
+	combinator: 'and' | 'or';
 	rules: EntitySearchRuleOrGroup[];
 }
 
@@ -40,19 +40,22 @@ async function fetchEntitiesSearch(
 	token: string,
 	portApiBaseUrl: string | null,
 	body: EntitySearchBody,
-	options: EntitySearchOptions = {}
+	options: EntitySearchOptions = {},
 ) {
 	const url = new URL(`${portApiBaseUrl}/v1/entities/search`);
-	url.searchParams.set("exclude_calculated_properties", String(options.exclude_calculated_properties ?? false));
-	url.searchParams.set("attach_title_to_relation", String(options.attach_title_to_relation ?? false));
-	url.searchParams.set("attach_identifier_to_title_mirror_properties", String(options.attach_identifier_to_title_mirror_properties ?? false));
-	url.searchParams.set("allow_partial_results", String(options.allow_partial_results ?? false));
+	url.searchParams.set('exclude_calculated_properties', String(options.exclude_calculated_properties ?? false));
+	url.searchParams.set('attach_title_to_relation', String(options.attach_title_to_relation ?? false));
+	url.searchParams.set(
+		'attach_identifier_to_title_mirror_properties',
+		String(options.attach_identifier_to_title_mirror_properties ?? false),
+	);
+	url.searchParams.set('allow_partial_results', String(options.allow_partial_results ?? false));
 
 	const res = await fetch(url.toString(), {
-		method: "POST",
+		method: 'POST',
 		headers: {
-			Accept: "application/json",
-			"Content-Type": "application/json",
+			Accept: 'application/json',
+			'Content-Type': 'application/json',
 			Authorization: `Bearer ${token}`,
 		},
 		body: JSON.stringify(body),
@@ -61,15 +64,19 @@ async function fetchEntitiesSearch(
 	return res.json();
 }
 
-export function entitiesSearch(blueprint: Record<string, unknown>, searchBody: EntitySearchBody, options?: EntitySearchOptions) {
+export function entitiesSearch(
+	blueprint: Record<string, unknown>,
+	searchBody: EntitySearchBody,
+	options?: EntitySearchOptions,
+) {
 	const { portApiBaseUrl, portToken, page } = usePortPluginData();
 	const mergedSearchBody = mergePageFilters(
 		searchBody as unknown as EntitiesQuery,
 		page?.pageFilters,
-		blueprint as Blueprint,
+		blueprint as unknown as Blueprint,
 	) as EntitySearchBody;
 	return useQuery({
-		queryKey: ["entities", "search", portToken, mergedSearchBody, options],
+		queryKey: ['entities', 'search', portToken, mergedSearchBody, options],
 		queryFn: () => fetchEntitiesSearch(portToken!, portApiBaseUrl, mergedSearchBody!, options),
 		enabled: !!portToken && !!mergedSearchBody && (options?.enabled ?? true),
 	});
