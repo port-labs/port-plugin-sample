@@ -1,4 +1,5 @@
 import clsx from 'clsx';
+import { createPortal } from 'react-dom';
 import {
 	type AnchorHTMLAttributes,
 	type ButtonHTMLAttributes,
@@ -6,10 +7,13 @@ import {
 	type ForwardedRef,
 	Fragment,
 	type HTMLAttributes,
+	type MouseEvent,
 	type ReactNode,
 	createElement,
 	forwardRef,
 	useId,
+	useLayoutEffect,
+	useRef,
 	useState,
 } from 'react';
 
@@ -76,22 +80,98 @@ export function Label({
 	);
 }
 
+type TipCoords = { top: number; left: number; transform: string };
+
+function placeTip(anchor: HTMLElement, tipEl: HTMLElement, margin = 6, viewportPad = 8): TipCoords {
+	const rect = anchor.getBoundingClientRect();
+	const th = tipEl.offsetHeight;
+	const tw = tipEl.offsetWidth;
+	const preferAbove = rect.top > th + margin + viewportPad;
+	let top: number;
+	let transform: string;
+	if (preferAbove) {
+		top = rect.top - margin;
+		transform = 'translateY(-100%)';
+	} else {
+		top = rect.bottom + margin;
+		transform = 'none';
+	}
+	let left = rect.left;
+	left = Math.min(Math.max(viewportPad, left), window.innerWidth - tw - viewportPad);
+	return { top, left, transform };
+}
+
 export function Tooltip({ children, tip, dataTestId }: { children: ReactNode; tip?: ReactNode; dataTestId?: string }) {
 	const [open, setOpen] = useState(false);
+	const [coords, setCoords] = useState<TipCoords | null>(null);
+	const wrapRef = useRef<HTMLSpanElement>(null);
+	const tipRef = useRef<HTMLSpanElement>(null);
+
+	useLayoutEffect(() => {
+		if (!open) {
+			setCoords(null);
+			return;
+		}
+		const anchor = wrapRef.current;
+		const tipEl = tipRef.current;
+		if (!anchor || !tipEl) return;
+
+		const apply = () => setCoords(placeTip(anchor, tipEl));
+		apply();
+		window.addEventListener('scroll', apply, true);
+		window.addEventListener('resize', apply);
+		return () => {
+			window.removeEventListener('scroll', apply, true);
+			window.removeEventListener('resize', apply);
+		};
+	}, [open]);
+
+	const close = () => {
+		setOpen(false);
+		setCoords(null);
+	};
+
+	const onWrapLeave = (e: MouseEvent) => {
+		const rel = e.relatedTarget as Node | null;
+		if (tipRef.current && rel && tipRef.current.contains(rel)) return;
+		close();
+	};
+
+	const onTipLeave = (e: MouseEvent) => {
+		const rel = e.relatedTarget as Node | null;
+		if (wrapRef.current && rel && wrapRef.current.contains(rel)) return;
+		close();
+	};
+
 	if (!tip) return <Fragment>{children}</Fragment>;
+
 	return (
 		<span
+			ref={wrapRef}
 			className="plugin-tooltip-wrap"
 			data-testid={dataTestId}
 			onMouseEnter={() => setOpen(true)}
-			onMouseLeave={() => setOpen(false)}
+			onMouseLeave={onWrapLeave}
 		>
 			{children}
-			{open && (
-				<span className="plugin-tooltip-tip" role="tooltip">
-					{tip}
-				</span>
-			)}
+			{open &&
+				createPortal(
+					<span
+						ref={tipRef}
+						className="plugin-tooltip-tip plugin-tooltip-tip--portal"
+						role="tooltip"
+						style={
+							coords
+								? { top: coords.top, left: coords.left, transform: coords.transform }
+								: { top: 0, left: 0, visibility: 'hidden', pointerEvents: 'none' }
+						}
+						onMouseEnter={() => setOpen(true)}
+						onMouseLeave={onTipLeave}
+					>
+						{tip}
+					</span>,
+					document.body,
+				)}
 		</span>
 	);
 }

@@ -54,26 +54,29 @@
 }
 
 .plugin-tooltip-wrap {
-	position: relative;
 	display: inline-flex;
 	max-width: 100%;
 }
 
 .plugin-tooltip-tip {
-	position: absolute;
-	bottom: 100%;
-	left: 0;
-	margin-bottom: 6px;
 	padding: 6px 10px;
 	background: var(--text-high, #0f172a);
 	color: var(--background-primary, #fff);
 	font-size: 12px;
 	border-radius: 6px;
 	white-space: nowrap;
-	z-index: 5;
 	max-width: 280px;
 	overflow: hidden;
 	text-overflow: ellipsis;
+}
+
+/* Portaled to document.body so table overflow:hidden and header stacking do not clip tooltips. */
+.plugin-tooltip-tip--portal {
+	position: fixed;
+	z-index: 10050;
+	margin: 0;
+	box-sizing: border-box;
+	pointer-events: auto;
 }
 
 /* CellWrapper: Tailwind is not bundled in the plugin — layout must be plain CSS (matches Port grid hover actions). */
